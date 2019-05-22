@@ -4,3 +4,4 @@
 1. BOIS加载磁盘第一扇区bootsect.s
 2. bootsect.s加载setup程序
 3. setup程序加载system模块
+4. system模块包含head及main模块，跳转到main函数执行
