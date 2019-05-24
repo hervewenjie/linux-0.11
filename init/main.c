@@ -129,16 +129,16 @@ void main(void)		/* This really IS void, no error here. */
 
 	mem_init(main_memory_start,memory_end);  // 内存
 	trap_init();                             // 中断
-	blk_dev_init();                          // 
-	chr_dev_init();                          // 
+	blk_dev_init();                          // 块设备
+	chr_dev_init();                          // 字符设备
 	tty_init();                              // 
 	time_init();                             // 
-	sched_init();                            // 
-	buffer_init(buffer_memory_end);
-	hd_init();
-	floppy_init();
-	sti();
-	move_to_user_mode();
+	sched_init();                            // 初始化进程0
+	buffer_init(buffer_memory_end);          // 
+	hd_init();                               // 硬盘
+	floppy_init();                           // 软盘
+	sti();                                   // 开中断
+	move_to_user_mode();                     // 特权级从0到3
 	if (!fork()) {		/* we count on this going ok */
 		init();
 	}
@@ -149,7 +149,7 @@ void main(void)		/* This really IS void, no error here. */
  * can run). For task0 'pause()' just means we go check if some other
  * task can run, and if not we return here.
  */
-	for(;;) pause();
+	for(;;) pause();                         // 在进程0中运行
 }
 
 static int printf(const char *fmt, ...)
@@ -180,15 +180,15 @@ void init(void)
 	printf("%d buffers = %d bytes buffer space\n\r",NR_BUFFERS,
 		NR_BUFFERS*BLOCK_SIZE);
 	printf("Free mem: %d bytes\n\r",memory_end-main_memory_start);
-	if (!(pid=fork())) {
+	if (!(pid=fork())) {                        // 括号里为进程2的执行代码
 		close(0);
-		if (open("/etc/rc",O_RDONLY,0))
+		if (open("/etc/rc",O_RDONLY,0))         // 用rc文件替换标准输入输出
 			_exit(1);
-		execve("/bin/sh",argv_rc,envp_rc);
+		execve("/bin/sh",argv_rc,envp_rc);      // 加载shell程序
 		_exit(2);
 	}
 	if (pid>0)
-		while (pid != wait(&i))
+		while (pid != wait(&i))                 // 进程1等待子进程退出
 			/* nothing */;
 	while (1) {
 		if ((pid=fork())<0) {

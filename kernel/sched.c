@@ -389,9 +389,10 @@ void sched_init(void)
 
 	if (sizeof(struct sigaction) != 16)
 		panic("Struct sigaction MUST be 16 bytes");
-	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss));
-	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&(init_task.task.ldt));
-	p = gdt+2+FIRST_TSS_ENTRY;
+	set_tss_desc(gdt+FIRST_TSS_ENTRY,&(init_task.task.tss)); // 设置TTS0, 在GDT中初始化进程0所占的4,5两项
+	set_ldt_desc(gdt+FIRST_LDT_ENTRY,&(init_task.task.ldt)); // 设置LDT0
+
+	p = gdt+2+FIRST_TSS_ENTRY;                               // 清零
 	for(i=1;i<NR_TASKS;i++) {
 		task[i] = NULL;
 		p->a=p->b=0;
@@ -401,12 +402,12 @@ void sched_init(void)
 	}
 /* Clear NT, so that we won't have troubles with that later on */
 	__asm__("pushfl ; andl $0xffffbfff,(%esp) ; popfl");
-	ltr(0);
-	lldt(0);
-	outb_p(0x36,0x43);		/* binary, mode 3, LSB/MSB, ch 0 */
+	ltr(0);                                                  // TR指向TSS0
+	lldt(0);                                                 // LDTR指向LDT0
+	outb_p(0x36,0x43);/* binary, mode 3, LSB/MSB, ch 0 */
 	outb_p(LATCH & 0xff , 0x40);	/* LSB */
-	outb(LATCH >> 8 , 0x40);	/* MSB */
+	outb(LATCH >> 8 , 0x40);	/* MSB */                    // 每10ms一次时钟中断
 	set_intr_gate(0x20,&timer_interrupt);
-	outb(inb_p(0x21)&~0x01,0x21);
-	set_system_gate(0x80,&system_call);
+	outb(inb_p(0x21)&~0x01,0x21);                            // 允许时钟中断
+	set_system_gate(0x80,&system_call);                      // 设置系统总调用入口
 }

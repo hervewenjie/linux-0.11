@@ -77,14 +77,14 @@ struct tss_struct {
 
 struct task_struct {
 /* these are hardcoded - don't touch */
-	long state;	/* -1 unrunnable, 0 runnable, >0 stopped */
-	long counter;
-	long priority;
-	long signal;
-	struct sigaction sigaction[32];
-	long blocked;	/* bitmap of masked signals */
+	long state;	/* -1 unrunnable, 0 runnable, >0 stopped */  // 任务运行状态
+	long counter;                                            // 运行时间计数
+	long priority;                                           // 优先级
+	long signal;                                             // 信号位图
+	struct sigaction sigaction[32];                          // 信号执行属性结构
+	long blocked;	/* bitmap of masked signals */           // 信号屏蔽码
 /* various fields */
-	int exit_code;
+	int exit_code;                                           // 任务停止后的退出码
 	unsigned long start_code,end_code,end_data,brk,start_stack;
 	long pid,father,pgrp,session,leader;
 	unsigned short uid,euid,suid;
